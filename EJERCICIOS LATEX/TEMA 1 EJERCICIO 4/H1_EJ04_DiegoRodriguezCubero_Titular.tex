@@ -1,0 +1,116 @@
+\documentclass[aspectratio=169]{beamer}
+
+% Tema y configuración
+\usetheme{Madrid}
+\usecolortheme{default}
+
+% Paquetes necesarios
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{listings}
+% Habilitar UTF-8 dentro de lstlisting (acentos, ñ, etc.)
+\usepackage{listingsutf8}
+\usepackage{xcolor}
+\usepackage{verbatim}
+% Para dibujos con TikZ
+\usepackage{tikz}
+\usetikzlibrary{positioning,trees}
+
+% Configuración de listings para código
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{green},
+    stringstyle=\color{red},
+    showstringspaces=false,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    inputencoding=utf8,
+    % Mapeo de caracteres españoles para que no falle la compilación
+    literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'\i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+             {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+             {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {ü}{{\"u}}1 {Ü}{{\"U}}1
+}
+
+% Información del documento
+\title{Hoja 1: Ejercicio 4}
+\subtitle{TEMA}
+\author{Diego Rodríguez Cubero}
+\institute{UCM}
+
+% Logo (opcional)
+% \logo{\includegraphics[height=1cm]{images/logo.png}}
+
+\begin{document}
+
+% Diapositiva de título
+\begin{frame}
+    \titlepage
+\end{frame}
+
+% Tabla de contenidos
+\begin{frame}{Contenidos}
+    \tableofcontents
+\end{frame}
+
+% Sección 1
+\section{Enunciado del problema}
+\begin{frame}{Enunciado del problema}
+    \begin{block}{Ejercicio 4}
+        Un archipiélago consta de unas cuantas islas y varios puentes que unen ciertos pares de islas entre sí. Para cada puente (que puede ser de dirección única o doble), además de saber la isla de origen y la de destino, se conoce su anchura $> 0$. La anchura de un camino formado por una sucesión de puentes es la anchura mínima entre las anchuras de los puentes que lo forman. Para cada isla, se desea saber cuál es el camino de anchura máxima que las une (siempre que exista alguno).    
+    \end{block}
+\end{frame}
+
+% Sección 2
+\section{Idea de la solución}
+\begin{frame}{Idea de la solución}
+    Podemos tratar este problema como un grafo dirigido y valorado, donde las islas son los vértices y los puentes son las aristas con un peso que representa la anchura del puente. Para cada isla, queremos encontrar el camino de anchura máxima a todas las demás islas. Esto se puede resolver utilizando el algoritmo de Floyd modificado para encontrar el camino de anchura máxima entre todos los pares de vértices, para ello definamos la siguiente función.
+\end{frame}
+
+\begin{frame}{Función de recurrencia}
+    Definamos la función $C^k(i,j)$ como la anchura máxima del camino de la isla $i$ a la isla $j$ usando solo las islas $1, 2, \ldots, k$ como intermediarias. Es decir:
+    \[
+        C^k(i,j) = \text{anchura máxima del camino de } i \text{ a } j \text{ usando solo los vértices } 1, 2, \ldots, k
+    \]
+    La función de recurrencia para esta función es la siguiente:
+    \[
+        C^k(i,j) = \max\left(C^{k-1}(i,j), \min\left(C^{k-1}(i,k), C^{k-1}(k,j)\right)\right)
+    \]
+    Y los casos base son (matriz de adyacencia):
+    \[
+        C^0(i,j) = \begin{cases}
+            0 & \text{si } i = j \\
+            peso(i,j) & \text{si existe un puente de } i \text{ a } j \\
+            -\infty & \text{en otro caso}
+        \end{cases}
+    \]
+    Veamos ahora cómo implementar esta función de manera iterativa.
+\end{frame}
+
+% Sección 3
+\section{Implementación iterativa}
+\begin{frame}[fragile]{Implementación iterativa}
+    Para implementar esta función de manera iterativa, podemos utilizar tres bucles anidados. El código sería el siguiente:
+    \begin{lstlisting}[language=C++, caption=Implementación iterativa del algoritmo de Floyd modificado]
+    // C es la matriz de adyacencia definida anteriormente
+    for k in 1 to n:
+        for i in 1 to n:
+            for j in 1 to n:
+                C[i][j] = max(C[i][j], min(C[i][k], C[k][j]))
+    \end{lstlisting}
+    Así, al finalizar estos bucles, la matriz $C$ contendrá la anchura máxima del camino entre cada par de islas. La complejidad temporal de este algoritmo es $O(n^3)$, lo cual es eficiente para grafos de tamaño moderado, y la complejidad espacial es $O(n^2)$ debido a la matriz de adyacencia, la cual contiene la solución final.
+\end{frame}
+
+% Sección 4
+\section{Conclusión}
+\begin{frame}{Conclusión}
+    En resumen, hemos transformado el problema del archipiélago en un problema de grafos y hemos utilizado una variante del algoritmo de Floyd para encontrar el camino de anchura máxima entre todas las islas. Este enfoque es eficiente y permite obtener la solución deseada para cada isla en relación con las demás.
+\end{frame}
+
+\end{document}

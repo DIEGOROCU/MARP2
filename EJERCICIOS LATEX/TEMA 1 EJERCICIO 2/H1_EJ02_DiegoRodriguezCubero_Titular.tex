@@ -1,0 +1,149 @@
+\documentclass[aspectratio=169]{beamer}
+
+% Tema y configuración
+\usetheme{Madrid}
+\usecolortheme{default}
+
+% Paquetes necesarios
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{listings}
+% Habilitar UTF-8 dentro de lstlisting (acentos, ñ, etc.)
+\usepackage{listingsutf8}
+\usepackage{xcolor}
+\usepackage{verbatim}
+% Para dibujos con TikZ
+\usepackage{tikz}
+\usetikzlibrary{positioning,trees}
+
+% Configuración de listings para código
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{green},
+    stringstyle=\color{red},
+    showstringspaces=false,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    inputencoding=utf8,
+    % Mapeo de caracteres españoles para que no falle la compilación
+    literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'\i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+             {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+             {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {ü}{{\"u}}1 {Ü}{{\"U}}1
+}
+
+% Información del documento
+\title{Hoja 1: Ejercicio 2}
+\subtitle{TEMA}
+\author{Diego Rodríguez Cubero}
+\institute{UCM}
+
+% Logo (opcional)
+% \logo{\includegraphics[height=1cm]{images/logo.png}}
+
+\begin{document}
+
+% Diapositiva de título
+\begin{frame}
+    \titlepage
+\end{frame}
+
+% Tabla de contenidos
+\begin{frame}{Contenidos}
+    \tableofcontents
+\end{frame}
+
+% Sección 1
+\section{Enunciado del problema}
+\begin{frame}{Enunciado del problema}
+    \begin{block}{El rapero con sueltecillo}
+        Un rapero lleva excesivo dinero suelto en el bolsillo de su pantalón, lo que contribuye a que lleve los pantalones demasiado caídos. Como consecuencia, cada vez que paga una cantidad C, su deseo es emplear el mayor número posible de monedas. Suponiendo que para todo $i, 1 \leq i \leq n$, tiene $n_i$ monedas del tipo $m_i$, diseñar un algoritmo que le diga cuáles monedas debe emplear
+    \end{block}
+\end{frame}
+
+% Sección 2
+\section{Idea Principal}
+\begin{frame}{Idea Principal}
+    La idea principal del algoritmo es similar a la del problema de las monedas, pero en este caso, en lugar de minimizar el número de monedas, se busca maximizarlo.   
+\end{frame}
+
+% Sección 3
+\section{Algoritmo propuesto}
+\begin{frame}{Algoritmo propuesto}
+    Llamemos $\text{monedas}(i,j)=$ número máximo de monedas que se pueden usar para pagar j euros usando los primeros i tipos de monedas. Entonces, la recurrencia es:
+    \[
+        \text{monedas}(i,j) = \max_{0 \leq k \leq n_i, k \cdot m_i \leq j} \{ k + \text{monedas}(i-1, j - k \cdot m_i) \}
+    \]
+    Y los casos base son:
+    \[
+        \text{monedas}(0,j) = -\infty \quad \text{para todo } j \geq 0
+    \]
+    y
+    \[        
+        \text{monedas}(i,0) = 0 \quad \text{para todo } i \geq 0
+    \]
+\end{frame}
+
+\begin{frame}[fragile]{Pseudocódigo del algoritmo}
+    \begin{lstlisting}[language=C++, caption=Pseudocódigo del algoritmo propuesto]
+        function max_monedas(n, m, N, C):
+        // n (tipos de monedas), m (valores de las monedas), N (número de monedas de cada tipo), C (cantidad a pagar)
+        crear matriz monedas[n+1][C+1]
+        para j desde 0 hasta C:
+            monedas[0][j] = -infinity
+        para i desde 0 hasta n:
+            monedas[i][0] = 0
+        para i desde 1 hasta n:
+            para j desde 1 hasta C:
+                max_monedas = -infinity
+                para k desde 0 hasta N[i-1]:
+                    si k * m[i-1] <= j:
+                        max_monedas = max(max_monedas, k + monedas[i-1][j - k * m[i-1]])
+                monedas[i][j] = max_monedas
+        return monedas[n][C]
+    \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Reconstruccion de la solución}
+    \begin{lstlisting}[language=C++, caption=Reconstrucción de la solución]
+        function reconstruir_solucion(monedas, n, m, N, C):
+        i = n
+        j = C
+        resultado = []
+        mientras i > 0 y j > 0:
+            para k desde 0 hasta N[i-1] {
+                si k * m[i-1] <= j // No nos pasamos de j
+                // Lo optimo es usar k monedas del tipo i-1
+                && monedas[i][j] == k + monedas[i-1][j - k * m[i-1]]:
+                        resultado.agregar((m[i-1], k))
+                        j = j - k * m[i-1]
+                        romper
+            }
+            i = i - 1
+            si k == N[i-1] + 1: // No se usó ninguna moneda de este tipo
+                resultado.agregar((m[i-1], 0))
+        return resultado
+    \end{lstlisting}
+    
+\end{frame}
+
+% Sección 4
+\section{Complejidad del algoritmo}
+\begin{frame}{Complejidad del algoritmo}
+    La complejidad temporal del algoritmo es $O(n \cdot C \cdot \max(N_i))$. Esto se debe a que para crear la solucion recorremos una matriz de tamaño $n \cdot C$ y para cada celda, en el peor caso, tendremos que iterar hasta $N_i$ veces para encontrar el máximo número de monedas que se pueden usar. La reconstruccion de la solución tiene una complejidad de $O(n \cdot \max(N_i))$ en el peor caso, ya que en el peor caso, podríamos tener que revisar todas las posibles cantidades de monedas para cada tipo.
+    La complejidad en espacio es $O(n \cdot C)$ debido a la matriz utilizada para almacenar los resultados intermedios.
+\end{frame}
+
+% Sección 5
+\section{Conclusión}
+\begin{frame}{Conclusión}
+    Hemos diseñado un algoritmo para resolver el problema, basandonos al inicio en la idea del problema de las monedas, pero adaptándolo para maximizar el número de monedas utilizadas. La solución se basa en una programación dinámica que nos permite calcular el número máximo de monedas que se pueden usar para pagar una cantidad dada, teniendo en cuenta las restricciones de cantidad y tipos de monedas disponibles.
+\end{frame}
+
+\end{document}
