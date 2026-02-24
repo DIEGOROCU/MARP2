@@ -1,0 +1,218 @@
+\documentclass[aspectratio=169]{beamer}
+
+% Tema y configuración
+\usetheme{Madrid}
+\usecolortheme{default}
+
+% Paquetes necesarios
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{listings}
+% Habilitar UTF-8 dentro de lstlisting (acentos, ñ, etc.)
+\usepackage{listingsutf8}
+\usepackage{xcolor}
+\usepackage{verbatim}
+% Para dibujos con TikZ
+\usepackage{tikz}
+\usetikzlibrary{positioning,trees}
+
+% Configuración de listings para código
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{green},
+    stringstyle=\color{red},
+    showstringspaces=false,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    inputencoding=utf8,
+    % Mapeo de caracteres españoles para que no falle la compilación
+    literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'\i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+             {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+             {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {ü}{{\"u}}1 {Ü}{{\"U}}1
+}
+
+% Estilo y configuración de listings
+\input{estilo.tex}
+
+% Información del documento
+\title{Hoja 2: Ejercicio 10}
+\subtitle{Ramificación y poda}
+\author{Diego Rodríguez Cubero}
+\institute{UCM}
+
+% Logo (opcional)
+% \logo{\includegraphics[height=1cm]{images/logo.png}}
+
+\begin{document}
+
+% Diapositiva de título
+\begin{frame}
+    \titlepage
+\end{frame}
+
+% Tabla de contenidos
+\begin{frame}{Contenidos}
+    \tableofcontents
+\end{frame}
+
+% Sección 1
+\section{Enunciado del problema}
+\begin{frame}{Enunciado del problema}
+    \begin{block}{Ejercicio 10}
+        Una de las pruebas habituales del concurso Supervivientes es la construcción de una cabaña rudimentaria cuyo techo es una simple lona soportada por cuatro pilares. Los concursantes dispondrán de $n$ de fragmentos de caña de longitudes enteras $l_1,\cdots , l_n$ ensamblando los cuales deberán obtener los cuatro pilares. El objetivo es que sus alturas queden razonablemente equilibradas y sean lo más altas posibles. Precisando, desarrollar el problema buscando maximizar el pilar más bajo de los cuatro.
+
+    \end{block}
+\end{frame}
+
+% Sección 2
+\section{Idea general}
+\begin{frame}{Idea general}
+    Para resolver este problema, podemos utilizar una técnica de ramificación y poda. La idea es generar todas las posibles combinaciones de los fragmentos de caña para formar los cuatro pilares, y luego podar aquellas combinaciones que no cumplan con el objetivo de maximizar el pilar más bajo.
+\end{frame}
+
+% Sección 3
+\section{Espacio de soluciones}
+\begin{frame}{Espacio de soluciones}
+    El espacio de soluciones se puede representar como un vector:
+    \[ (x_1, \cdots , x_n) \, : \qquad x_i \in \{1,2,3,4\} \quad \forall i \in \{1,\cdots,n\} \]
+    donde $x_i$ representa la asignación del fragmento de caña $l_i$ a uno de los cuatro pilares.
+    En forma de arbol se representaría de la siguiente manera, donde cada arista de la altura $i$ a un nodo de valor $k$ significa asignar $x_i=k$.
+\end{frame}
+
+\begin{frame}{Árbol}
+    \begin{center}
+        \begin{tikzpicture}[
+            every node/.style={draw, circle, inner sep=3pt, font=\footnotesize},
+            level 1/.style={sibling distance=30em, level distance=2.5em},
+            level 2/.style={sibling distance=15em, level distance=2.5em},
+            level 3/.style={sibling distance=6.5em,  level distance=2.5em},
+            level 4/.style={sibling distance=1.8em, level distance=2.5em},
+            scale=1.3, transform shape
+        ]
+            \node {0}
+                child { node {1}
+                    child { node {1}
+                        child { node {1}
+                            child { node {1} }
+                            child { node {2} }
+                        }
+                        child { node {2}
+                            child { node {1} }
+                            child { node {2} }
+                            child { node {3} }
+                        }
+                    }
+                    child { node {2}
+                        child { node {1}
+                            child { node {1} }
+                            child { node {2} }
+                        }
+                        child { node {2}
+                            child { node {1} }
+                            child { node {2} }
+                            child { node {3} }
+                        }
+                        child { node {3}
+                            child { node {1} }
+                            child { node {2} }
+                            child { node {3} }
+                            child { node {4} }
+                        }
+                    }
+                };
+        \end{tikzpicture}
+    \end{center}
+\end{frame}
+
+% Sección 4
+\section{Cota optimista}
+\begin{frame}[fragile]{Cota optimista}
+    Para calcular la cota optimista, podemos considerar la suma total de las longitudes de los fragmentos de caña y dividirla entre 4, ya que queremos maximizar el pilar más bajo. Esto nos dará una cota superior para la altura del pilar más bajo, si tomamos $k$ como el proximo trozo a asignar, y $h[j]$ es la altura actual del pilar $j$, entonces la cota optimista se puede calcular como:
+    \[
+        \text{Cota optimista} = \left\lfloor \frac{\sum_{i=k}^{n} l_i}{4} \right\rfloor + \min_{j=1}^{4} h[j]
+    \]
+    Que claramente tendrá coste $O(n)$ al recorrer los fragmentos restantes en costes constantes.
+\end{frame}
+
+\begin{frame}[fragile]{Cota optimista - Código}
+    El código para calcular la cota optimista podría ser el siguiente:
+    \begin{lstlisting}[language=C++]
+        int cota_optimista(vector<int>& longitudes, vector<int>& alturas, int k) {
+            int suma_total = 0;
+            for (int i = k; i < longitudes.size(); i++) {
+                suma_total += longitudes[i];
+            }
+            int min_altura = min(alturas[0], min(alturas[1], min(alturas[2], alturas[3])));
+            return suma_total / 4 + min_altura; // División entera
+        }
+    \end{lstlisting}
+\end{frame}
+
+% Sección 5
+\section{Cota pesimista}
+\begin{frame}[fragile]{Cota pesimista}
+    En este problema es claro ver que cualquier solucion es factible, por mala que sea, por lo que para calcular una cota pesimista útil (siempre se podria usar 0, pero no nos serviria para nada), podemos ir asignando los fragmentos de caña al pilar más bajo en cada paso, lo que nos dará una cota inferior para la altura del pilar más bajo.\\
+    Este algoritmo también tendrá un coste de $O(n)$, ya que recorremos los fragmentos restantes y en cada paso encontramos el pilar más bajo en tiempo constante.
+\end{frame}
+
+\begin{frame}[fragile]{Cota pesimista - Código}
+    El código para calcular la cota pesimista podría ser el siguiente:
+    \begin{lstlisting}[language=C++]
+        int cota_pesimista(vector<int>& longitudes, vector<int>& alturas, int k) {
+            vector<int> alturas_copia = alturas; // Copia de las alturas actuales
+            for (int i = k; i < longitudes.size(); i++) {
+                // Encontrar el pilar más bajo
+                int min_index = 0;
+                for (int j = 1; j < 4; j++) {
+                    if (alturas_copia[j] < alturas_copia[min_index]) {
+                        min_index = j;
+                    }
+                }
+                // Asignar el fragmento al pilar más bajo
+                alturas_copia[min_index] += longitudes[i];
+            }
+            return *min_element(alturas_copia.begin(), alturas_copia.end());
+        }
+    \end{lstlisting}
+\end{frame}
+
+% Sección 6
+\section{Algoritmo del ejercicio}
+\begin{frame}[fragile]{Algoritmo del ejercicio}
+    \begin{lstlisting}[language=C++, basicstyle=\ttfamily\scriptsize]
+        void ramificacion_poda(vector<int>& longitudes, vector<int>& alturas, int k, int& mejor_solucion, vector<int>& mejor_asignacion) {
+            if (k == longitudes.size()) {
+                int min_pilar = min(alturas); // Encontrar el pilar más bajo
+                if (min_pilar > mejor_solucion) { // Actualizar mejor solución
+                    mejor_solucion = min_pilar;
+                    mejor_asignacion = alturas; // Guardar la asignación actual
+                }
+            }
+            else {
+            for (int j = 0; j < 4; j++) {
+                alturas[j] += longitudes[k];         // Asignar fragmento al pilar j
+                int cota_opt = cota_optimista(longitudes, alturas, k + 1);
+                if (cota_opt > mejor_solucion) {     // Poda: solo si puede mejorar
+                    ramificacion_poda(longitudes, alturas, k + 1, mejor_solucion, mejor_asignacion);
+                }
+                alturas[j] -= longitudes[k];         // Deshacer la asignacion
+            }
+        }
+    \end{lstlisting}
+\end{frame}
+
+% Sección 7
+\section{Complejidad del algoritmo}
+\begin{frame}{Complejidad del algoritmo}
+    La complejidad del algoritmo de ramificación y poda en el peor caso es $O(n 4^n)$, ya que en el peor caso se exploran todas las combinaciones posibles de asignación de los fragmentos a los pilares, lo que da lugar a $4^n$ combinaciones, y para cada combinación se calcula la cota optimista en $O(n)$, auqnue en la práctica, la poda puede reducir significativamente el número de combinaciones exploradas gracias a las podas que se realizan al comparar la cota optimista con la mejor solución encontrada hasta el momento.\\
+    El coste en espacio es $O(n)$ debido a la profundidad de la recursión y el almacenamiento de las alturas de los pilares.
+\end{frame}
+
+\end{document}
