@@ -141,6 +141,50 @@
 \end{frame}
 
 % Sección 5
+\section{Otra forma de resolver el problema}
+\begin{frame}{Otra forma de resolver el problema}
+    Podemos ahorrarnos el tiempo de la reconstruccion de la solución si, en lugar de almacenar solo el número máximo de monedas, almacenamos también la cantidad de monedas de cada tipo que se usó para alcanzar ese máximo. De esta manera, al finalizar el algoritmo, tendremos directamente la solución sin necesidad de recorrer la matriz nuevamente. Esto se puede hacer manteniendo una matriz adicional que almacene la cantidad de monedas de cada tipo que se usó para alcanzar el máximo número de monedas en cada celda. La complejidad temporal seguiría siendo $O(n \cdot C \cdot \max(N_i))$, pero la reconstrucción de la solución se reduciría a $O(n)$, ya que simplemente tendríamos que leer la matriz adicional para obtener la cantidad de monedas de cada tipo que se usó.
+    Los costes en espacio se incrementarían a $O(n \cdot C + n \cdot \max(N_i))$ debido a la matriz adicional para almacenar la cantidad de monedas de cada tipo, aunque asintoticamente no cambiarian ninguno de los dos costes.
+\end{frame}
+
+\begin{frame}[fragile]
+    \begin{lstlisting}[language=C++, caption=Pseudocódigo del algoritmo alternativo]
+        function max_monedas_alternativo(n, m, N, C):
+        crear matriz monedas[n+1][C+1]
+        crear matriz cantidad_monedas[n+1][C+1] // Monedas usadas
+        para j desde 0 hasta C:
+            monedas[0][j] = -infinity
+        para i desde 0 hasta n:
+            monedas[i][0] = 0
+        para i desde 1 hasta n:
+            para j desde 1 hasta C:
+                max_monedas = -infinity
+                cantidad_usada = 0
+                para k desde 0 hasta N[i-1]:
+                    si k * m[i-1] <= j:
+                        if k + monedas[i-1][j - k * m[i-1]] > max_monedas:
+                            max_monedas = k + monedas[i-1][j - k * m[i-1]]
+                            cantidad_usada = k
+                monedas[i][j] = max_monedas
+                cantidad_monedas[i][j] = cantidad_usada // Almacenar la cantidad de monedas usada
+        return monedas[n][C], cantidad_monedas
+    \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Solucion}
+    Ahora para conocer cuantas monedas de cada tipo se han usado, simplemente tenemos que leer la matriz cantidad\_monedas. Por ejemplo, para el tipo de moneda i, la cantidad de monedas usadas para pagar C euros sería cantidad\_monedas[i][C].
+    \begin{lstlisting}{language=C++, caption=Obtener la solución directamente}
+        function obtener_solucion(cantidad_monedas, n, C):
+        resultado = []
+        for i from 1 to n:
+            resultado.agregar((m[i-1], cantidad_monedas[i][C]))
+            C = C - cantidad_monedas[i][C] * m[i-1] // Actualizar la cantidad restante a pagar
+        return resultado
+    \end{lstlisting}
+    Esta funcion tiene de coste en tiempo $O(n)$, ya que simplemente recorremos la matriz cantidad\_monedas una vez para obtener la cantidad de monedas de cada tipo que se usó para pagar la cantidad C, y en espacio $O(n)$ para almacenar el resultado.
+\end{frame}
+
+% Sección 6
 \section{Conclusión}
 \begin{frame}{Conclusión}
     Hemos diseñado un algoritmo para resolver el problema, basandonos al inicio en la idea del problema de las monedas, pero adaptándolo para maximizar el número de monedas utilizadas. La solución se basa en una programación dinámica que nos permite calcular el número máximo de monedas que se pueden usar para pagar una cantidad dada, teniendo en cuenta las restricciones de cantidad y tipos de monedas disponibles.
