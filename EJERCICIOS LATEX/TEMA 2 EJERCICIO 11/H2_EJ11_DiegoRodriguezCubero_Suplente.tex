@@ -166,27 +166,48 @@
 
 % Sección 6: Implementación del algoritmo
 \section{Implementación del algoritmo}
-\begin{frame}[fragile]{Implementación del algoritmo}
+
+\begin{frame}[fragile]{Definición de los nodos}
+    Definamos los nodos que usaremos para representar el estado actual en el árbol de decisiones:
     \begin{lstlisting}[language=c++, basicstyle=\ttfamily\scriptsize]
-    void ramificacionYPoda(vector<vector<int>>& precios, vector<int>& asignacion, int p_actual, int costeActual, int& minCos, vector<int>& minAsig) {
-        if (p_actual == precios.size() && costeActual < minCos) {
-            minCos = costeActual;
-            minAsig = asignacion;
+struct Nodo {
+    vector<int> asignacion; // Vector que representa la asignación de productos a supermercados
+    int costeActual; // Coste acumulado hasta el nodo actual
+    int cotaOptimista; // Cota optimista para el nodo actual, la prioridad
+    int productoActual; // Índice del producto que se va a asignar en este nodo
+};
+    \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Implementación del algoritmo}
+    \begin{lstlisting}[language=c++, basicstyle=\ttfamily\tiny]
+int ramificacionYPoda() {
+    priority_queue<Nodo> pq;
+    Nodo raiz; // Inicializamos
+    int mejor = raiz.cotaPesimista; // estimacion inicial con cota pesimista
+    pq.push(raiz);
+    while (!pq.empty()) {
+        Nodo nodo = pq.top(); pq.pop();
+        if (nodo.cotaOptimista >= mejor) continue; // poda
+        if (nodo.productoActual == n) { // hoja: solucion completa
+            mejor = min(mejor, nodo.costeActual); continue;
         }
-        else {
-            for (int j = 0; j < precios[p_actual].size(); j++) {
-                if (asignacion[j] < 3) { // 3 productos por supermercado
-                    asignacion[j]++;
-                    int nuevoCoste = costeActual + precios[p_actual][j];
-                    int cotaOpt = nuevoCoste + cotaOptimista(precios, asignacion, p_actual + 1);
-                    if (cotaOpt < minCos) { // Poda
-                        ramificacionYPoda(precios, asignacion, p_actual + 1, nuevoCoste, minCos, minAsig);
-                    }
-                    asignacion[j]--; // Quitamos el producto
-                }
+        for (int j = 0; j < m; j++) {
+            if (nodo.asignacion[j] >= 3) continue; // restriccion capacidad
+            Nodo hijo;
+            hijo.asignacion = nodo.asignacion; hijo.asignacion[j]++;
+            hijo.costeActual = nodo.costeActual + precios[nodo.productoActual][j];
+            hijo.productoActual = nodo.productoActual + 1;
+            hijo.cotaOptimista = hijo.costeActual +
+                cotaOptimista(precios, hijo.asignacion, hijo.productoActual);
+            if (hijo.cotaOptimista < mejor) {
+                mejor = min(mejor, hijo.cotaPesimista);
+                pq.push(hijo); // Segun la prioridad de la cota optimista
             }
         }
-    }   
+    }
+    return mejor;
+}
     \end{lstlisting}
 \end{frame}
 

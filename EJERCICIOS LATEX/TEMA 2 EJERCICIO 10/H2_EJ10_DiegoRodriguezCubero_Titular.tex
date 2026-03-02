@@ -134,23 +134,25 @@
 % Sección 4
 \section{Cota optimista}
 \begin{frame}[fragile]{Cota optimista}
-    Para calcular la cota optimista, podemos considerar la suma total de las longitudes de los fragmentos de caña y dividirla entre 4, ya que queremos maximizar el pilar más bajo. Esto nos dará una cota superior para la altura del pilar más bajo, si tomamos $k$ como el proximo trozo a asignar, y $h[j]$ es la altura actual del pilar $j$, entonces la cota optimista se puede calcular como:
-    \[
-        \text{Cota optimista} = \left\lfloor \frac{\sum_{i=k}^{n} l_i}{4} \right\rfloor + \min_{j=1}^{4} h[j]
-    \]
-    Que claramente tendrá coste $O(n)$ al recorrer los fragmentos restantes en costes constantes.
+    Para calcular la cota optimista, la idea sera ir dividiendo cada framgento (no se puede en el ejercicio, pero lo haremos para la cota), repartiendolo entre los cuatro pilares, y en el momento que todos tengan la misma altura, dividir cada fragmento restante entre los cuatro pilares, lo que nos dará una cota superior para la altura del pilar más bajo.\\
+    Este algoritmo tendrá un coste de $O(n)$, ya que recorremos los fragmentos restantes y en cada paso encontramos el pilar más bajo en tiempo constante.\\
+    Esto lo podemos hacer sumando todas las longitudes, primero igualamos los 2 pilares más bajos, luego los 3 pilares más bajos (2 de ellos ya estarán igualados), luego los 4 pilares (3 de ellos ya estarán igualados), y finalmente dividimos el resto entre los 4 pilares.
 \end{frame}
 
 \begin{frame}[fragile]{Cota optimista - Código}
     El código para calcular la cota optimista podría ser el siguiente:
     \begin{lstlisting}[language=C++]
-        int cota_optimista(vector<int>& longitudes, vector<int>& alturas, int k) {
-            int suma_total = 0;
-            for (int i = k; i < longitudes.size(); i++) {
-                suma_total += longitudes[i];
+        int cota_optimista {
+            int longitud_restante = sum(longitudes.begin() + k, longitudes.end());
+            vector<int> alturas_copia = alturas.sort(); // Copia de las alturas actuales
+            // Igualar los pilares más bajos
+            for (int i = 0; i < 3; i++) {
+                int anadido = min(longitud_restante, (alturas_copia[i + 1] - alturas_copia[0]) * (i + 1));
+                for (int j = 0; j <= i; j++) {
+                    alturas_copia[j] += anadido / (i + 1);
+                }
             }
-            int min_altura = min(alturas[0], min(alturas[1], min(alturas[2], alturas[3])));
-            return suma_total / 4 + min_altura; // División entera
+            return alturas_copia[0] + longitud_restante / 4;
         }
     \end{lstlisting}
 \end{frame}
@@ -167,6 +169,7 @@
     \begin{lstlisting}[language=C++]
         int cota_pesimista(vector<int>& longitudes, vector<int>& alturas, int k) {
             vector<int> alturas_copia = alturas; // Copia de las alturas actuales
+            // Igualamos
             for (int i = k; i < longitudes.size(); i++) {
                 // Encontrar el pilar más bajo
                 int min_index = 0;
@@ -178,41 +181,66 @@
                 // Asignar el fragmento al pilar más bajo
                 alturas_copia[min_index] += longitudes[i];
             }
-            return *min_element(alturas_copia.begin(), alturas_copia.end());
+            return min(alturas);
         }
     \end{lstlisting}
 \end{frame}
 
 % Sección 6
 \section{Algoritmo del ejercicio}
-\begin{frame}[fragile]{Algoritmo del ejercicio}
-    \begin{lstlisting}[language=C++, basicstyle=\ttfamily\scriptsize]
-        void ramificacion_poda(vector<int>& longitudes, vector<int>& alturas, int k, int& mejor_solucion, vector<int>& mejor_asignacion) {
-            if (k == longitudes.size()) {
-                int min_pilar = min(alturas); // Encontrar el pilar más bajo
-                if (min_pilar > mejor_solucion) { // Actualizar mejor solución
-                    mejor_solucion = min_pilar;
-                    mejor_asignacion = alturas; // Guardar la asignación actual
-                }
-            }
-            else {
-            for (int j = 0; j < 4; j++) {
-                alturas[j] += longitudes[k];         // Asignar fragmento al pilar j
-                int cota_opt = cota_optimista(longitudes, alturas, k + 1);
-                if (cota_opt > mejor_solucion) {     // Poda: solo si puede mejorar
-                    ramificacion_poda(longitudes, alturas, k + 1, mejor_solucion, mejor_asignacion);
-                }
-                alturas[j] -= longitudes[k];         // Deshacer la asignacion
+\begin{frame}[fragile]{Explicación del algoritmo}
+    Para hacer una correcta implementación del algoritmo de ramificación y poda, podemos definir el siguiente tipo "nodo" que guardara la información necesaria para cada nodo del árbol de búsqueda, a la vez que la prioridad (para tener acceso al nodo mas prometedor), que será la altura del pilar más bajo en la asignación actual:
+    \begin{lstlisting}[language=C++]
+        struct Nodo {
+            vector<int> alturas; // Alturas actuales de los pilares
+            vector<int> asignaciones; // Asignación actual de fragmentos a pilares
+            int k; // Índice del fragmento a asignar
+            int prioridad; // Altura del pilar más bajo en la asignación actual
+            int cota_op; // Cota optimista para el nodo actual
+        };
+    \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+    \begin{lstlisting}[language=C++, basicstyle=\ttfamily\tiny]
+int ramificacion_y_poda(vector<int>& l, int n, int& mejor, vector<int>& mejor_asignacion) {
+    priority_queue<Nodo> pq; // Cola de prioridad para los nodos
+    Nodo raiz; // Inicialización del nodo raíz inicial
+    raiz.prioridad = 0;
+    raiz.cota_op = cota_optimista(l, raiz.alturas, 0);
+    mejor = cota_pesimista(l, raiz.alturas, 0);
+    pq.push(raiz, raiz.prioridad);
+    while (!pq.empty()) {
+        Nodo nodo = pq.top(); pq.pop();
+        if (nodo.cota_op <= mejor) continue; // poda
+        if (nodo.k == n) { // hoja
+            mejor = max(mejor, min(nodo.alturas)); mejor_asignacion = nodo.asignaciones; continue;
+        }
+        set<int> vistos; // evitar ramas simetricas
+        for (int j = 0; j < 4; j++) {
+            if (vistos.count(nodo.alturas[j])) continue;
+            vistos.insert(nodo.alturas[j]);
+            Nodo hijo; hijo.alturas = nodo.alturas;
+            hijo.alturas[j] += l[nodo.k]; hijo.k = nodo.k + 1;
+            hijo.prioridad = min(hijo.alturas[j], nodo.prioridad);
+            hijo.cota_op = cota_optimista(l, hijo.alturas, hijo.k);
+            if (hijo.cota_op > mejor) {
+                mejor = max(mejor, cota_pesimista(l, hijo.alturas, hijo.k));
+                pq.push(hijo, hijo.prioridad);
             }
         }
+    }
+    return mejor;
+}
     \end{lstlisting}
 \end{frame}
 
 % Sección 7
 \section{Complejidad del algoritmo}
 \begin{frame}{Complejidad del algoritmo}
-    La complejidad del algoritmo de ramificación y poda en el peor caso es $O(n 4^n)$, ya que en el peor caso se exploran todas las combinaciones posibles de asignación de los fragmentos a los pilares, lo que da lugar a $4^n$ combinaciones, y para cada combinación se calcula la cota optimista en $O(n)$, auqnue en la práctica, la poda puede reducir significativamente el número de combinaciones exploradas gracias a las podas que se realizan al comparar la cota optimista con la mejor solución encontrada hasta el momento.\\
-    El coste en espacio es $O(n)$ debido a la profundidad de la recursión y el almacenamiento de las alturas de los pilares.
+    La complejidad del algoritmo de ramificación y poda en el peor caso es $O(n 4^n)$, ya que en el peor caso se exploran todas las combinaciones posibles de asignación de los fragmentos a los pilares, lo que da lugar a $4^n$ combinaciones, y para cada combinación se calcula la cota optimista y pesimista en $O(n)$, auqnue en la práctica, la poda puede reducir significativamente el número de combinaciones exploradas gracias a las podas que se realizan al comparar la cota optimista con la mejor solución encontrada hasta el momento.\\
+    El coste en espacio es $O(n)$, ya que en cada momento se almacenan las alturas de los pilares y las asignaciones de los fragmentos, lo que requiere espacio lineal en el número de fragmentos. \\
+    Notese que si la mejor solucion coincide con la cota pesimista inicial, se tendria que calcular la asignacion exacta volviendo a realizar el proceso de asignacion de los fragmentos al pilar más bajo, lo que se podria hacer en $O(n)$, por lo que el coste total del algoritmo en dicho caso no cambia.
 \end{frame}
 
 \end{document}
