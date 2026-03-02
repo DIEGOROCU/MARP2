@@ -14,6 +14,7 @@
 #include <string>
 #include <cmath>
 #include <cctype>
+#include <climits>
 
 #include <stack>
 #include <queue>

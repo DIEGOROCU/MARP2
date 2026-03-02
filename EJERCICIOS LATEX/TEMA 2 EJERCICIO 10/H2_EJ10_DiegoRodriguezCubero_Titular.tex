@@ -195,7 +195,7 @@
             vector<int> alturas; // Alturas actuales de los pilares
             vector<int> asignaciones; // Asignación actual de fragmentos a pilares
             int k; // Índice del fragmento a asignar
-            int prioridad; // Altura del pilar más bajo en la asignación actual
+            int prioridad; // Altura del pilar más bajo en la asignación actual (se puede cambiar por la cota optimista si se prefiere)
             int cota_op; // Cota optimista para el nodo actual
         };
     \end{lstlisting}
@@ -239,7 +239,7 @@ int ramificacion_y_poda(vector<int>& l, int n, int& mejor, vector<int>& mejor_as
 \section{Complejidad del algoritmo}
 \begin{frame}{Complejidad del algoritmo}
     La complejidad del algoritmo de ramificación y poda en el peor caso es $O(n 4^n)$, ya que en el peor caso se exploran todas las combinaciones posibles de asignación de los fragmentos a los pilares, lo que da lugar a $4^n$ combinaciones, y para cada combinación se calcula la cota optimista y pesimista en $O(n)$, auqnue en la práctica, la poda puede reducir significativamente el número de combinaciones exploradas gracias a las podas que se realizan al comparar la cota optimista con la mejor solución encontrada hasta el momento.\\
-    El coste en espacio es $O(n)$, ya que en cada momento se almacenan las alturas de los pilares y las asignaciones de los fragmentos, lo que requiere espacio lineal en el número de fragmentos. \\
+    El coste en espacio es $O(4^n)$, ya que en el peor caso se pueden almacenar todas las combinaciones posibles de asignación de los fragmentos a los pilares en la cola de prioridad.\\
     Notese que si la mejor solucion coincide con la cota pesimista inicial, se tendria que calcular la asignacion exacta volviendo a realizar el proceso de asignacion de los fragmentos al pilar más bajo, lo que se podria hacer en $O(n)$, por lo que el coste total del algoritmo en dicho caso no cambia.
 \end{frame}
 
