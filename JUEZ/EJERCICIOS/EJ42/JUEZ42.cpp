@@ -64,11 +64,11 @@ bool resuelveCaso()
         cin >> longitudes[i] >> costes[i];
     }
 
-    vector<int> maneras(longitud + 1, 0);
+    vector<long long int> maneras(longitud + 1, 0);
     maneras[0] = 1;
-    vector<int> minCostes(longitud + 1, INT_MAX);
+    vector<long long int> minCostes(longitud + 1, INT_MAX);
     minCostes[0] = 0;
-    vector<int> minCantidades(longitud + 1, INT_MAX);
+    vector<long long int> minCantidades(longitud + 1, INT_MAX);
     minCantidades[0] = 0;
 
     for (int i = 0; i < cant; ++i)

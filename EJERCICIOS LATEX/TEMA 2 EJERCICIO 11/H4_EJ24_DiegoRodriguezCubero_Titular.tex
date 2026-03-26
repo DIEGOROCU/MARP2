@@ -1,0 +1,141 @@
+\documentclass[aspectratio=169]{beamer}
+
+% Tema y configuración
+\usetheme{Madrid}
+\usecolortheme{default}
+
+% Paquetes necesarios
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{listings}
+% Habilitar UTF-8 dentro de lstlisting (acentos, ñ, etc.)
+\usepackage{listingsutf8}
+\usepackage{xcolor}
+\usepackage{verbatim}
+% Para dibujos con TikZ
+\usepackage{tikz}
+\usetikzlibrary{positioning,trees}
+
+% Configuración de listings para código
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{green},
+    stringstyle=\color{red},
+    showstringspaces=false,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    inputencoding=utf8,
+    % Mapeo de caracteres españoles para que no falle la compilación
+    literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'\i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+             {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+             {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {ü}{{\"u}}1 {Ü}{{\"U}}1
+}
+
+% Información del documento
+\title{Hoja 4: Ejercicio 24}
+\subtitle{Ramificación y poda}
+\author{Diego Rodríguez Cubero}
+\institute{UCM}
+
+% Logo (opcional)
+% \logo{\includegraphics[height=1cm]{images/logo.png}}
+
+\begin{document}
+
+% Diapositiva de título
+\begin{frame}
+    \titlepage
+\end{frame}
+
+% Tabla de contenidos
+\begin{frame}{Contenidos}
+    \tableofcontents
+\end{frame}
+
+% Sección 1
+\section{Enunciado del problema}
+\begin{frame}{Enunciado del problema}
+    \begin{block}{Ejercicio 24}
+        El problema \textbf{ISO\_SUBGRAPH} consiste, dados dos grafos
+        $G = (V_G, A_G)$ y $H = (V_H, A_H)$, en determinar si $G$ tiene un
+        subgrafo isomorfo a $H$.
+
+        Se pide demostrar que \textbf{ISO\_SUBGRAPH} es NP-completo, sabiendo
+        que el problema de decision \textbf{CLIQUE} lo es.
+
+        Decir que $G$ tiene un subgrafo isomorfo a $H$ significa que existe un
+        grafo $G' = (V_{G'}, A_{G'})$ subgrafo de $G$, es decir:
+
+        \[
+        V_{G'} \subseteq V_G, \qquad
+        A_{G'} = A_G \cap (V_{G'} \times V_{G'})
+        \]
+
+        y una biyeccion $f : V_{G'} \to V_H$ tal que:
+
+        \[
+        (u, v) \in A_{G'} \Longleftrightarrow (f(u), f(v)) \in A_H
+        \]
+    \end{block}
+\end{frame}
+
+% Sección 2
+\section{Demostración de NP-completitud}
+\begin{frame}{Demostración de NP-completitud}
+    Para demostrar que \textbf{ISO\_SUBGRAPH} es NP-completo, debemos
+    mostrar dos cosas:
+
+    \begin{itemize}
+        \item \textbf{ISO\_SUBGRAPH} está en NP.
+        \item \textbf{CLIQUE} $\leq^p$ \textbf{ISO\_SUBGRAPH}, es decir, se puede reducir el problema de \textbf{CLIQUE} a \textbf{ISO\_SUBGRAPH} en tiempo polinómico.
+    \end{itemize}
+\end{frame}
+
+\section{ISO\_SUBGRAPH está en NP}
+\begin{frame}{ISO\_SUBGRAPH está en NP}
+    Para demostrar que \textbf{ISO\_SUBGRAPH} está en NP, debemos comprobar que podemos verifcar una solución en tiempo polinómico.
+
+    Debemos verificar que existe un subgrafo $G'$ de $G$ y una biyección $f : V_{G'} \to V_H$ que preserve las aristas. Esto implica verificar lo siguiente:
+
+    \begin{itemize}
+        \item $G'$ es un subgrafo de $G$ (comprobar que $V_{G'} \subseteq V_G$ y que $A_{G'} = A_G \cap (V_{G'} \times V_{G'})$).
+        \item $f$ es una biyección entre $V_{G'}$ y $V_H$.
+        \item Para cada arista $(u, v) \in A_{G'}$, verificar que $(f(u), f(v)) \in A_H$ y viceversa.
+    \end{itemize}
+
+    Dado que todas estas verificaciones se pueden realizar en tiempo
+    polinómico, y en cantidades polinómicas, concluimos que \textbf{ISO\_SUBGRAPH} está en NP.
+\end{frame}
+
+\section{Reducción de CLIQUE a ISO\_SUBGRAPH}
+\begin{frame}{Reducción de CLIQUE a ISO\_SUBGRAPH}
+    Para demostrar que \textbf{CLIQUE} $\leq^p$ \textbf{ISO\_SUBGRAPH}, debemos construir una reducción polinómica de cualquier instancia de \textbf{CLIQUE} a una instancia de \textbf{ISO\_SUBGRAPH}.
+
+    Dado un grafo $G$ y un entero $k$, queremos determinar si $G$ tiene una clique de tamaño $k$. Para esto, construiremos un grafo $H$ que sea un clique de tamaño $k$, es decir, $H = (V_H, A_H)$ donde $V_H = \{1, 2, \ldots, k\}$ y $A_H = \{(i, j) : 1 \leq i < j \leq k\}$.
+
+    Luego, la instancia de \textbf{ISO\_SUBGRAPH} será el par $(G, H)$. La pregunta es si $G$ tiene un subgrafo isomorfo a $H$, lo cual es equivalente a preguntar si $G$ tiene una clique de tamaño $k$.
+
+    Por lo tanto, si podemos resolver \textbf{ISO\_SUBGRAPH} para esta instancia, podremos resolver \textbf{CLIQUE}. Esto muestra que \textbf{CLIQUE} se reduce a \textbf{ISO\_SUBGRAPH} en tiempo polinómico.
+\end{frame}
+
+% Sección 3
+\section{Conclusión}
+\begin{frame}{Conclusión}
+    Hemos demostrado que \textbf{ISO\_SUBGRAPH} es NP-completo al mostrar que:
+
+    \begin{itemize}
+        \item \textbf{ISO\_SUBGRAPH} está en NP, ya que podemos verificar una solución en tiempo polinómico.
+        \item \textbf{CLIQUE} se reduce a \textbf{ISO\_SUBGRAPH} en tiempo polinómico, lo que implica que si pudiéramos resolver \textbf{ISO\_SUBGRAPH} eficientemente, también podríamos resolver \textbf{CLIQUE}.
+    \end{itemize}
+
+    Por lo tanto, concluimos que \textbf{ISO\_SUBGRAPH} es un problema NP-completo.
+\end{frame}
+
+\end{document}
