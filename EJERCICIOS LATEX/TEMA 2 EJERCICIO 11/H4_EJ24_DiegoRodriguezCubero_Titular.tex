@@ -111,7 +111,44 @@
     \end{itemize}
 
     Dado que todas estas verificaciones se pueden realizar en tiempo
-    polinómico, y en cantidades polinómicas, concluimos que \textbf{ISO\_SUBGRAPH} está en NP.
+    polinómico, y en cantidades polinómicas, concluimos que \textbf{ISO\_SUBGRAPH} está en NP.\\
+    Veamos un pseudocódigo para la verificación.
+\end{frame}
+
+\section{Pseudocódigo para la verificación}
+\begin{frame}[fragile]{Pseudocódigo para la verificación}
+    \begin{lstlisting}[basicstyle=\ttfamily\footnotesize]
+function verificar_ISO_SUBGRAPH(G, H, G', f):
+    # Verificar que G' es un subgrafo de G
+    for each v in V_{G'}:
+        if v not in V_G:
+            return False
+    for each (u, v) in A_{G'}:
+        if (u, v) not in A_G or v not in V_{G'} or u not in V_{G'}:
+        return False
+    # Verificar que f es una biyeccion
+    # Inyectividad
+    for each u1, u2 in V_{G'}:
+        if u1 != u2 and f(u1) == f(u2):
+            return False
+    # Sobreyectividad
+    for each x in V_H:
+        if x not in f(V_{G'}):
+            return False
+    \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Pseudocódigo para la verificación (continuación)}
+    \begin{lstlisting}[basicstyle=\ttfamily\footnotesize]
+    # Verificar que f preserve las aristas
+    for each (u, v) in A_{G'}:
+        if (f(u), f(v)) not in A_H:
+            return False
+    for each (x, y) in A_H:
+        if (f^{-1}(x), f^{-1}(y)) not in A_{G'}:
+            return False
+    return True
+    \end{lstlisting}
 \end{frame}
 
 \section{Reducción de CLIQUE a ISO\_SUBGRAPH}
